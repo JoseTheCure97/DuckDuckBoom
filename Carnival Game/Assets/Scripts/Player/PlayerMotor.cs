@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMotor : MonoBehaviour
 {
+    private Rigidbody rb;
     private CharacterController controller;
     private Vector3 playerVelocity;
     private bool isGrounded;
@@ -14,11 +16,26 @@ public class PlayerMotor : MonoBehaviour
     private bool crouching;
     private bool sprinting;
     public float crouchTimer;
- 
+
+    #region playerHealth
+    [SerializeField] private int playerHealth = 20;
+    private int currentPlayerHealth;
+    #endregion
+
+    [SerializeField] UIManager manager;
+
+    private void Awake()
+    {
+        currentPlayerHealth = playerHealth;
+        manager.SetMaxHealth(playerHealth);
+    }
+
     // Start is called before the first frame update
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        Bullet.damage += TakeDamage;
+        rb = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
@@ -81,5 +98,24 @@ public class PlayerMotor : MonoBehaviour
             speed = 8;
         else
             speed = 5;
+    }
+
+    private void TakeDamage(int damage)
+    {
+        if (currentPlayerHealth > 0)
+        {
+            currentPlayerHealth -= damage;
+            manager.DamagedHealthBar(currentPlayerHealth);
+
+            if (currentPlayerHealth <= 0)
+            {
+                Invoke(nameof(Die), 0.5f);
+            }
+        }
+    }
+
+    private void Die()
+    {
+        manager.ShowLostLevelMessage();
     }
 }

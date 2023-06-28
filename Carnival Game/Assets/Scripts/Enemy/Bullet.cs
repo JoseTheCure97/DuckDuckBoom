@@ -4,14 +4,29 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    private void OnCollisionEnter(Collision collision)
+    #region damage
+    public delegate void Damage(int damage);
+    public static event Damage damage;
+
+    [SerializeField] private int damageAmount;
+    #endregion
+
+    private void OnTriggerEnter(Collider collision)
     {
-        Transform hitTransform = collision.transform;
-        if (hitTransform.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player"))
         {
-            Debug.Log("Hit Player");
-            hitTransform.GetComponent<PlayerHealth>().TakeDamage(10);
+            if (damage != null)
+            {
+                GivenDamage();
+                Destroy(this.gameObject);
+            }
         }
+
         Destroy(gameObject);
+    }
+
+    private void GivenDamage()
+    {
+        damage(damageAmount);
     }
 }
